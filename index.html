@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="grey">
+    <title>Digit Prediction</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<script src="js/NN.js"></script>
+<script src="js/MJ.js"></script>
+<script src="js/main.js"></script>
+<body style="background-color:MintCream;">
+    <center><h5 style="background-color: grey; color: MintCream;width: 75%">784 X 255 X 255 X 10 : Neural Network</h5></center>
+    <div style="width: 200px;height: 150px;margin-top: 5px ">
+      <center><b>Prediction</b></b></center>
+      <center><h1 id="preDsp">--</h1></center>
+      <center><b>Accuracy</b></center>
+      <center><h4 id="accDsp">--</h4></center>
+    </div>
+    <canvas id="drawingCanvas" width="200" height="200"></canvas>
+    <div style="width: 200px;">
+      <button id="clearCanvas">Clear</button>
+      <button id="predict" style="float: right;">Predict</button>
+    </div>
+    <center id="GitHub">
+      By <a href="https://github.com/MoBnJlal"><b style="color:#009900;          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;">MoBnJlal</b></a>
+    </center>
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const destCanvas = document.getElementById('dest');
+
+        let drawing = false;
+        const clearCanvas = document.getElementById('clearCanvas');
+        const predict = document.getElementById('predict');
+        const preDsp = document.getElementById('preDsp');
+        const accDsp = document.getElementById('accDsp');
+
+
+        function startDrawing(x, y) {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function stopDrawing() {
+            drawing = false;
+        }
+
+        function draw(x, y) {
+            if (drawing) {
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+        }
+
+        function getCoords(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const { x, y } = getCoords(e);
+            startDrawing(x, y);
+        });
+
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        canvas.addEventListener('mousemove', (e) => {
+            const { x, y } = getCoords(e);
+            draw(x, y);
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const { x, y } = getCoords(touch);
+            startDrawing(x, y);
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        canvas.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            const { x, y } = getCoords(touch);
+            draw(x, y);
+            e.preventDefault();
+        });
+        clearCanvas.addEventListener('click', e => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          preDsp.innerText = "--"
+          accDsp.innerText = "--"
+          })
+        
+        predict.addEventListener('click', e => {
+          let pic = resizePixels(canvas,  0.14)
+          pic = div([pic], 255)
+          let prediction = model.predict(pic)
+          preDsp.innerText = argmax(prediction[0])[0]
+          accDsp.innerText = Math.floor(prediction[0][0][argmax(prediction[0])[0]] * 100) + "%"
+        })
+        function resizePixels(canvas,scaleFactor) {
+          const sourceCtx = canvas.getContext('2d');
+          const sourceImageData = sourceCtx.getImageData(0, 0, canvas.width, canvas.height);
+          const sourceData = sourceImageData.data;
+          const destWidth = Math.floor(canvas.width * scaleFactor);
+          const destHeight = Math.floor(canvas.height * scaleFactor);
+          let destData = []
+            // Resize pixels
+          for (let y = 0; y < destHeight; y++) {
+            for (let x = 0; x < destWidth; x++) {
+              const srcX = Math.floor(x / scaleFactor);
+              const srcY = Math.floor(y / scaleFactor);
+          
+              const srcIndex = (srcY * canvas.width + srcX) * 4;
+              const destIndex = (y * destWidth + x) * 4;
+          
+              destData[destIndex] = sourceData[srcIndex]; // Red
+              destData[destIndex + 1] = sourceData[srcIndex + 1]; // Green
+              destData[destIndex + 2] = sourceData[srcIndex + 2]; // Blue
+              destData[destIndex + 3] = sourceData[srcIndex + 3]; // Alpha
+            }
+          }
+          
+          let X = []
+          for (var i = 0; i < destData.length; i += 4) {
+            X.push(destData[i])
+          }
+          return X
+        }
+
+        ctx.strokeStyle = 'white'; // Set the color
+        ctx.lineWidth = 12; // Set the pencil width
+        ctx.lineCap='round';
+        ctx.strokeRect(10,10,10,75);
+        ctx.fillStyle = "black";
+        //ctx.globalAlpha = alpha; // alpha 0 = no effect 1 = full effect
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    </script>
+</body>
+</html>
