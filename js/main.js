@@ -1,0 +1,11 @@
+model = new Model()
+model.add(new LD(784, 256))
+model.add(new Act_ReLU())
+model.add(new LD(256, 256))
+model.add(new Act_ReLU())
+model.add(new LD(256, 10))
+model.add(new Act_Softmax())
+model.set(loss = new Loss_CCE(), optimizer = new Optimizer_Adam(0.05, 5e-5), accuracy = new Accuracy_Categorical())
+model.finalize()
+model.load_parameters('digits_mnist.parms')
+
