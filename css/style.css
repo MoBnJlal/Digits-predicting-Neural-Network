@@ -1,0 +1,20 @@
+canvas,div {
+  border: 1px solid black;
+  display: block;
+  margin: 0 auto;
+}
+h1, h4 {
+  margin: 10px auto;
+  float: center
+}
+button {
+  margin-top: 0px;
+  color: white;
+  background-color: grey;
+}
+#GitHub {
+  position:fixed;
+  bottom:10px;
+  width:100%;
+}
+        
